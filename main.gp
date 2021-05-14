@@ -1,18 +1,19 @@
 g = Mod(6, 682492462409094395392022581537473179285250139967739310024802121913471471);
 A = 245036439927702828116237663546936021015004354074422410966568949608523157;
 
+/* L'ordre du groupe multiplicatif est (682492462409094395392022581537473179285250139967739310024802121913471471 - 1)
+ * qui est composé, on va employer Pohlig-Hellman pour décomposer en sous-problèmes de calcul de log discret
+ * à résoudre via Baby Step Giant Step.
+ */
 
-\\ L'ordre du groupe multiplicatif est (682492462409094395392022581537473179285250139967739310024802121913471471 - 1)
-\\ qui est composé, on va employer Pohlig-Hellman pour décomposer en sous-problèmes de calcul de log discret
-\\ à résoudre via Baby Step Giant Step.
+/* Algo Baby Step-Giant Step:
+ * g: un générateur du groupe cyclique G=<g> d'ordre p
+ * A: élément du groupe G
+ * Retourne l'unique élément x du groupe tel que g^x = A
 
-
-\\ Algo Baby Step-Giant Step:
-\\ g: un générateur du groupe cyclique G=<g> d'ordre p
-\\ A: élément du groupe G
-\\ Retourne l'unique élément x du groupe tel que g^x = A
-\\ Note : l'introduction avec mapput des puissances de g est dure longtemps pour p grand (et consomme beaucoup de RAM).
-\\ À employer avec p premier "petit" (testé avec p de l'ordre de 9 chiffres).
+ * Note : l'introduction avec mapput des puissances de g est dure longtemps pour p grand (et consomme beaucoup de RAM).
+ * À employer avec p premier "petit" (testé avec p de l'ordre de 9 chiffres).
+ */
 Shanks_DLP(g, A, p) = {
   my(B, a, lookup_table, i, j, fac);
   B = ceil(sqrt(p));
@@ -27,6 +28,7 @@ Shanks_DLP(g, A, p) = {
   ); 
 }
 
+/*
 \\ Pollard Rho DLP Step function
 step(x, a, b, g, A) = {
   my(class_x);
@@ -62,9 +64,11 @@ RhoPollard_DLP(g, A, n) = {
       return (lift(Mod((ak - a2k) / (b2k - bk), n))););
   );
 }
+*/
 
-\\ Pohlig-Hellman dans le cas où l'ordre du groupe est une puissance d'un nombre premier (ici p^e)
-\\ Retourne l'unique entier satisfaisant g^x = A mod p^e
+/* Pohlig-Hellman dans le cas où l'ordre du groupe est une puissance d'un nombre premier (ici p^e)
+ * Retourne l'unique entier satisfaisant g^x = A mod p^e
+ */
 PH_prime_order(g, A, p, e) = {
   my(x, k, d, Ak, gamma_);
   x = 0; \\ = x0 + x1 p + x2 p^2 + ... + x_{e-1} p ^{e-1}
@@ -77,11 +81,13 @@ PH_prime_order(g, A, p, e) = {
   x;
 }
 
-\\ Décomposition de Pohlig-Hellman pour un groupe d'ordre non premier
-\\ Fonctionne sur le corps multiplicatif (Z/nZ)* uniquement
-\\ Cours + https://en.wikipedia.org/wiki/Pohlig%E2%80%93Hellman_algorithm#The_general_algorithm
-\\ Entrée g générateur d'un groupe G d'ordre n, A élément du groupe
-\\ Retourne a=log_g(A), tel que g^a=A dans G
+/* Décomposition de Pohlig-Hellman pour un groupe d'ordre non premier.
+ * Fonctionne sur le corps multiplicatif (Z/nZ)* uniquement.
+ * Cours + https://en.wikipedia.org/wiki/Pohlig%E2%80%93Hellman_algorithm#The_general_algorithm
+
+ * Entrée g générateur d'un groupe G d'ordre n, A élément du groupe.
+ * Retourne a=log_g(A), tel que g^a=A dans G.
+ */
 Pohlig_Hellman(g, A) = {
   my(i, r, n, group_order, xi, pi, ei, ni, gi, Ai, X);
   n = g.mod;
